@@ -1,0 +1,54 @@
+[
+  {
+    "name": {
+      "name": "estimated_num_tokens_cost"
+    },
+    "count": 345,
+    "sum": 0,
+    "sum_squared": 0,
+    "min": 0,
+    "max": 0,
+    "mean": 0.0,
+    "variance": 0.0,
+    "stddev": 0.0
+  },
+  {
+    "name": {
+      "name": "num_completions"
+    },
+    "count": 345,
+    "sum": 345,
+    "sum_squared": 345,
+    "min": 1,
+    "max": 1,
+    "mean": 1.0,
+    "variance": 0.0,
+    "stddev": 0.0
+  },
+  {
+    "name": {
+      "name": "max_num_output_tokens"
+    },
+    "count": 345,
+    "sum": 10350,
+    "sum_squared": 310500,
+    "min": 30,
+    "max": 30,
+    "mean": 30.0,
+    "variance": 0.0,
+    "stddev": 0.0
+  },
+  {
+    "name": {
+      "name": "num_requests"
+    },
+    "count": 1,
+    "sum": 345,
+    "sum_squared": 119025,
+    "min": 345,
+    "max": 345,
+    "mean": 345.0,
+    "variance": 0.0,
+    "stddev": 0.0
+  }
+]
