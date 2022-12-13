@@ -1,30 +1,39 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[5]:
-
-
+# Tested multiple version of transformers seems only working version is 4.22.1
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-
+os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 import json
 import tqdm
-
 import torch
 from transformers import AutoConfig, AutoTokenizer
 from transformers import AutoModelForCausalLM
+# import bitsandbytes as bnb
+import time 
 
-config = AutoConfig.from_pretrained('EleutherAI/gpt-j-6B')
-tokenizer = AutoTokenizer.from_pretrained('EleutherAI/gpt-j-6B')
-model = AutoModelForCausalLM.from_pretrained('EleutherAI/gpt-j-6B')
+model_name = "togethercomputer/GPT-JT-6B-v1"
+# model_name = "EleutherAI/gpt-j-6B"
+# model_name = "bigscience/bloom-3b"
+mode = "int8"
 
-model = model.half().eval().cuda()
+print(f"Benchmark <{model_name}> mode: {mode}")
 
+config = AutoConfig.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name, device_map='auto', load_in_8bit=True, int8_threshold=6.0)
+
+print("Loading model starts.")
+# model = model.eval().cuda()
+print("Loading model is done.")
 
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
     model.pad_token_id = tokenizer.eos_token_id
 tokenizer.add_bos_token = False
+tokenizer.pad_token = tokenizer.eos_token
+
+inputs = tokenizer('Where is Zurich?', return_tensors="pt")
+outputs = model.generate(input_ids=inputs['input_ids'].cuda(), do_sample=True, max_new_tokens=16)
+output_texts = tokenizer.batch_decode(outputs[0], skip_special_tokens=True)
+print(f"<foo demo> output:", output_texts)
 
 
 def infer(prompt, max_new_tokens=1):
@@ -34,7 +43,6 @@ def infer(prompt, max_new_tokens=1):
             k: v.to(model.device) for k,v in inputs.items()
         }
         ret = model.generate(**inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
-
         return tokenizer.decode(ret[0, inputs['input_ids'].size(1):])
 
 
@@ -76,7 +84,7 @@ tasks_list = [
     'twitter_complaints',
 ]
 for task_name in tasks_list:
+    start_time = time.time()
     acc = evaluate_acc(f'./raft-v8/raft:subset={task_name},model=together_gpt-j-6b,data_augmentation=canonical/scenario_state.json', max_new_tokens=20)
-    print(f"{task_name} accuracy: {acc}")
-    
-
+    end_time = time.time()
+    print(f"{task_name} accuracy: {acc}, time: {end_time-start_time}")
